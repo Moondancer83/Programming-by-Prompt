@@ -50,13 +50,12 @@ public class DiplomacyGame {
     public static Map<String, Territory> initializeBoard() {
         Map<String, Territory> board = new HashMap<>();
 
-        // Define territories
-        board.put("Rome", new Territory("Rome", true, false, true, false));
-        board.put("Naples", new Territory("Naples", true, false, true, false));
-        board.put("Tuscany", new Territory("Tuscany", false, false, true, false));
-        board.put("Tyrrhenian Sea", new Territory("Tyrrhenian Sea", false, false, false, true));
-        board.put("Venice", new Territory("Venice", true, true, true, false));
-        board.put("Apulia", new Territory("Apulia", false, false, true, false));
+        // Define territories for Diagram 3
+        board.put("Rome", new Territory("Rome", true, false, true, false));  // Coastal
+        board.put("Naples", new Territory("Naples", true, false, true, false));  // Coastal
+        board.put("Tuscany", new Territory("Tuscany", false, false, true, false));  // Coastal
+        board.put("Tyrrhenian Sea", new Territory("Tyrrhenian Sea", false, false, false, true));  // Water
+        board.put("Venice", new Territory("Venice", true, true, false, false));  // Inland
 
         // Define adjacencies
         board.get("Rome").addAdjacent("Naples");
@@ -85,6 +84,12 @@ public class DiplomacyGame {
         Territory currentTerritory = board.get(currentTerritoryName);
         List<String> possibleMoves = new ArrayList<>();
 
+        // Check if the unit exists in the specified territory
+        if (currentTerritory.unit == null || !currentTerritory.unit.equals(unit)) {
+            return possibleMoves; // Return an empty list if the unit is not present
+        }
+
+        // Determine possible moves based on adjacency and unit type
         for (String adjacent : currentTerritory.adjacentTerritories) {
             Territory adjacentTerritory = board.get(adjacent);
 
@@ -92,9 +97,15 @@ public class DiplomacyGame {
             if (unitType.equals("F") && (adjacentTerritory.isCoastal || adjacentTerritory.isWater)) {
                 possibleMoves.add(adjacent);
             }
+
+            // Army movement: inland or coastal provinces only
+            if (unitType.equals("A") && (adjacentTerritory.isInland || adjacentTerritory.isCoastal)) {
+                possibleMoves.add(adjacent);
+            }
         }
 
         return possibleMoves;
     }
+
 }
 

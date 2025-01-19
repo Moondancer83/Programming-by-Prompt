@@ -21,7 +21,7 @@ class DiplomacyGameTest {
     @Test
     void testFleetMovementFromRome() {
         // Place a Fleet in Rome
-        board.get("Rome").unit = "F Italy";
+        board.get("Rome").unit = "F Rome";
 
         // Get possible moves
         List<String> possibleMoves = DiplomacyGame.getPossibleMoves(board, "F Rome");
