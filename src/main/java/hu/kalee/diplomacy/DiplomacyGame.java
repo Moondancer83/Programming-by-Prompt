@@ -50,17 +50,21 @@ public class DiplomacyGame {
     public static Map<String, Territory> initializeBoard() {
         Map<String, Territory> board = new HashMap<>();
 
-        // Define territories for Diagram 3
+        // Define territories
         board.put("Rome", new Territory("Rome", true, false, true, false));  // Coastal
         board.put("Naples", new Territory("Naples", true, false, true, false));  // Coastal
         board.put("Tuscany", new Territory("Tuscany", false, false, true, false));  // Coastal
         board.put("Tyrrhenian Sea", new Territory("Tyrrhenian Sea", false, false, false, true));  // Water
-        board.put("Venice", new Territory("Venice", true, true, false, false));  // Inland
+        board.put("Adriatic Sea", new Territory("Adriatic Sea", false, false, false, true));  // Water
+        board.put("Venice", new Territory("Venice", true, false, true, false));  // Coastal
+        board.put("Apulia", new Territory("Apulia", false, false, true, false));  // Coastal
 
         // Define adjacencies
-        board.get("Rome").addAdjacent("Naples");
-        board.get("Rome").addAdjacent("Tuscany");
-        board.get("Rome").addAdjacent("Tyrrhenian Sea");
+        board.get("Rome").addAdjacent("Naples");       // Land and sea adjacency
+        board.get("Rome").addAdjacent("Tuscany");      // Land and sea adjacency
+        board.get("Rome").addAdjacent("Tyrrhenian Sea"); // Sea adjacency
+        board.get("Rome").addAdjacent("Venice");       // Land adjacency only
+        board.get("Rome").addAdjacent("Apulia");       // Land adjacency only
 
         board.get("Naples").addAdjacent("Rome");
         board.get("Naples").addAdjacent("Tyrrhenian Sea");
@@ -72,39 +76,61 @@ public class DiplomacyGame {
         board.get("Tyrrhenian Sea").addAdjacent("Naples");
         board.get("Tyrrhenian Sea").addAdjacent("Tuscany");
 
+        board.get("Venice").addAdjacent("Rome");  // Land adjacency only
+        board.get("Venice").addAdjacent("Adriatic Sea");
+
+        board.get("Adriatic Sea").addAdjacent("Venice");
+        board.get("Adriatic Sea").addAdjacent("Apulia");
+
+        board.get("Apulia").addAdjacent("Rome");
+        board.get("Apulia").addAdjacent("Adriatic Sea");
+
         return board;
     }
 
     // Get possible moves for a unit
     public static List<String> getPossibleMoves(Map<String, Territory> board, String unit) {
         String[] parts = unit.split(" ");
-        String unitType = parts[0]; // "F" or "A"
+        String unitType = parts[0]; // "F" for Fleet or "A" for Army
         String currentTerritoryName = parts[1];
 
         Territory currentTerritory = board.get(currentTerritoryName);
         List<String> possibleMoves = new ArrayList<>();
 
-        // Check if the unit exists in the specified territory
+        // Check if the specified unit exists in the current territory
         if (currentTerritory.unit == null || !currentTerritory.unit.equals(unit)) {
-            return possibleMoves; // Return an empty list if the unit is not present
+            return possibleMoves; // Return an empty list if the unit doesn't exist or doesn't match
         }
 
         // Determine possible moves based on adjacency and unit type
         for (String adjacent : currentTerritory.adjacentTerritories) {
             Territory adjacentTerritory = board.get(adjacent);
 
-            // Fleet movement: coastal or water provinces only
-            if (unitType.equals("F") && (adjacentTerritory.isCoastal || adjacentTerritory.isWater)) {
-                possibleMoves.add(adjacent);
-            }
-
-            // Army movement: inland or coastal provinces only
-            if (unitType.equals("A") && (adjacentTerritory.isInland || adjacentTerritory.isCoastal)) {
-                possibleMoves.add(adjacent);
+            if (unitType.equals("A")) {
+                // Army movement: inland or coastal provinces only
+                if (adjacentTerritory.isInland || adjacentTerritory.isCoastal) {
+                    possibleMoves.add(adjacent);
+                }
+            } else if (unitType.equals("F")) {
+                // Fleet movement: coastal or water provinces only
+                if (adjacentTerritory.isWater || (adjacentTerritory.isCoastal && sharesSeaRoute(board, currentTerritory, adjacentTerritory))) {
+                    possibleMoves.add(adjacent);
+                }
             }
         }
 
         return possibleMoves;
+    }
+
+    private static boolean sharesSeaRoute(Map<String, Territory> board, Territory origin, Territory destination) {
+        // Check if there's a shared sea province between origin and destination
+        for (String adjacentToOrigin : origin.adjacentTerritories) {
+            Territory seaTerritory = board.get(adjacentToOrigin);
+            if (seaTerritory.isWater && destination.adjacentTerritories.contains(seaTerritory.name)) {
+                return true; // Shared sea route found
+            }
+        }
+        return false; // No shared sea route
     }
 
 }

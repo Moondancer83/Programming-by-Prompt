@@ -170,7 +170,7 @@ Once this fix is applied, verify that all the tests pass:
 
 If there are still issues, let me know, and I can debug further with you!
 
-## Prompt
+## Feed
 ```declarative
 No, not working.
 The board.get("Rome").unit = "F Italy"; part makes getPossibleMoves return empty list as !currentTerritory.unit.equals(unit)) is true.
